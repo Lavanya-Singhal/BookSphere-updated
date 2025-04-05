@@ -535,10 +535,13 @@ export class MemStorage implements IStorage {
     if (!book) throw new Error(`Book with id ${transaction.bookId} not found`);
     if (book.copiesAvailable < 1) throw new Error(`No copies available for book ${book.title}`);
     
-    // Update book availability
+    // Update book availability - ensure copiesAvailable never goes below 0
+    const updatedCopiesAvailable = Math.max(0, book.copiesAvailable - 1);
     await this.updateBook(book.id, {
-      copiesAvailable: book.copiesAvailable - 1
+      copiesAvailable: updatedCopiesAvailable
     });
+    
+    console.log(`Book "${book.title}" available copies reduced from ${book.copiesAvailable} to ${updatedCopiesAvailable}`);
     
     // Update user borrowed count
     const user = await this.getUser(transaction.userId);
@@ -578,10 +581,24 @@ export class MemStorage implements IStorage {
     const book = await this.getBookById(transaction.bookId);
     if (!book) throw new Error(`Book with id ${transaction.bookId} not found`);
     
-    // Update book availability
-    await this.updateBook(book.id, {
-      copiesAvailable: book.copiesAvailable + 1
-    });
+    // Check if book has pending reservations before updating availability
+    const pendingReservations = Array.from(this.bookReservationsMap.values()).filter(
+      r => r.bookId === book.id && r.status === 'pending'
+    ).sort((a, b) => a.reservationDate.getTime() - b.reservationDate.getTime());
+    
+    let updatedCopiesAvailable = book.copiesAvailable;
+    
+    // If there are no pending reservations, increase the available copies
+    if (pendingReservations.length === 0) {
+      updatedCopiesAvailable = book.copiesAvailable + 1;
+      // Update book availability
+      await this.updateBook(book.id, {
+        copiesAvailable: updatedCopiesAvailable
+      });
+      console.log(`Book "${book.title}" available copies increased from ${book.copiesAvailable} to ${updatedCopiesAvailable}`);
+    } else {
+      console.log(`Book "${book.title}" has ${pendingReservations.length} pending reservations, keeping copies at ${book.copiesAvailable}`);
+    }
     
     // Update user borrowed count
     const user = await this.getUser(transaction.userId);
@@ -607,13 +624,9 @@ export class MemStorage implements IStorage {
     
     this.bookTransactionsMap.set(id, updatedTransaction);
     
-    // Check if book has reservations
-    const reservations = Array.from(this.bookReservationsMap.values()).filter(
-      r => r.bookId === book.id && r.status === 'pending'
-    ).sort((a, b) => a.reservationDate.getTime() - b.reservationDate.getTime());
-    
-    if (reservations.length > 0) {
-      const nextReservation = reservations[0];
+    // Process the next reservation if any exist
+    if (pendingReservations.length > 0) {
+      const nextReservation = pendingReservations[0];
       await this.updateBookReservation(nextReservation.id, {
         status: 'ready',
         notifiedAt: new Date()
@@ -670,10 +683,16 @@ export class MemStorage implements IStorage {
     const book = await this.getBookById(reservation.bookId);
     if (!book) throw new Error(`Book with id ${reservation.bookId} not found`);
     
-    // Set expiry date to 3 days from now
+    // Verify book has no available copies for reservation
+    if (book.copiesAvailable > 0) {
+      throw new Error(`Cannot reserve book "${book.title}" because there are ${book.copiesAvailable} copies available for borrowing`);
+    }
+    
+    // Set expiry date to 3 days from notification
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 3);
     
+    // Create the reservation record
     const newReservation: BookReservation = {
       ...reservation,
       id,
@@ -684,6 +703,12 @@ export class MemStorage implements IStorage {
     };
     
     this.bookReservationsMap.set(id, newReservation);
+    console.log(`Book "${book.title}" reserved by user ID ${reservation.userId}. Current pending reservations: ${
+      Array.from(this.bookReservationsMap.values()).filter(
+        r => r.bookId === book.id && r.status === 'pending'
+      ).length
+    }`);
+    
     return newReservation;
   }
 

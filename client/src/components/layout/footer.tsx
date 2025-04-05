@@ -14,10 +14,38 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-serif font-bold mb-4">Quick Links</h3>
             <ul className="text-gray-300 text-sm space-y-2">
-              <li><Link href="/help"><a className="hover:text-white">Help Center</a></Link></li>
-              <li><Link href="/privacy"><a className="hover:text-white">Privacy Policy</a></Link></li>
-              <li><Link href="/terms"><a className="hover:text-white">Terms of Service</a></Link></li>
-              <li><Link href="/contact"><a className="hover:text-white">Contact Support</a></Link></li>
+              <li>
+                <div 
+                  className="hover:text-white cursor-pointer"
+                  onClick={() => window.location.href = '/help'}
+                >
+                  Help Center
+                </div>
+              </li>
+              <li>
+                <div 
+                  className="hover:text-white cursor-pointer"
+                  onClick={() => window.location.href = '/privacy'}
+                >
+                  Privacy Policy
+                </div>
+              </li>
+              <li>
+                <div 
+                  className="hover:text-white cursor-pointer"
+                  onClick={() => window.location.href = '/terms'}
+                >
+                  Terms of Service
+                </div>
+              </li>
+              <li>
+                <div 
+                  className="hover:text-white cursor-pointer"
+                  onClick={() => window.location.href = '/contact'}
+                >
+                  Contact Support
+                </div>
+              </li>
             </ul>
           </div>
           <div>

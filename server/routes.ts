@@ -127,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     if (book.copiesAvailable < 1) {
-      return res.status(400).json({ error: "No copies available for borrowing" });
+      return res.status(400).json({ error: "No copies available for borrowing. You can reserve this book instead." });
     }
     
     const user = await storage.getUser(req.user.id);
@@ -153,8 +153,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ error: validationResult.error.errors[0].message });
     }
     
-    const transaction = await storage.createBookTransaction(validationResult.data);
-    res.status(201).json(transaction);
+    try {
+      const transaction = await storage.createBookTransaction(validationResult.data);
+      
+      // Create a notification for the borrow
+      await storage.createNotification({
+        userId: req.user.id,
+        title: 'Book Borrowed',
+        message: `You have borrowed "${book.title}". Due date: ${dueDate.toLocaleDateString()}`,
+        type: 'due_date',
+        relatedData: { transactionId: transaction.id, bookId, dueDate: dueDate.toISOString() }
+      });
+      
+      res.status(201).json(transaction);
+    } catch (error) {
+      console.error('Error borrowing book:', error);
+      res.status(500).json({ error: error.message || 'Failed to borrow book' });
+    }
   }));
   
   // POST /api/books/:id/return - Return a book
@@ -170,8 +185,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(403).json({ error: "You can only return your own borrowed books" });
     }
     
-    const returnedTransaction = await storage.returnBook(transactionId);
-    res.json(returnedTransaction);
+    try {
+      const returnedTransaction = await storage.returnBook(transactionId);
+      
+      // Get the book details for the notification
+      const book = await storage.getBookById(transaction.bookId);
+      if (!book) {
+        throw new Error(`Book with id ${transaction.bookId} not found`);
+      }
+      
+      // Create a return notification
+      await storage.createNotification({
+        userId: transaction.userId,
+        title: 'Book Returned',
+        message: `You have successfully returned "${book.title}".`,
+        type: 'system',
+        relatedData: { transactionId, bookId: transaction.bookId }
+      });
+      
+      // If there were any fines
+      if (returnedTransaction.fineAmount > 0) {
+        await storage.createNotification({
+          userId: transaction.userId,
+          title: 'Fine Assessed',
+          message: `A fine of $${returnedTransaction.fineAmount.toFixed(2)} has been assessed for late return of "${book.title}".`,
+          type: 'fine',
+          relatedData: { transactionId, bookId: transaction.bookId, amount: returnedTransaction.fineAmount }
+        });
+      }
+      
+      res.json(returnedTransaction);
+    } catch (error) {
+      console.error('Error returning book:', error);
+      res.status(500).json({ error: error.message || 'Failed to return book' });
+    }
   }));
   
   // POST /api/books/:id/reserve - Reserve a book
@@ -185,6 +232,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     if (book.copiesAvailable > 0) {
       return res.status(400).json({ error: "Book is available for borrowing, no need to reserve" });
+    }
+    
+    // Check if user already has a pending or ready reservation for this book
+    const userReservations = await storage.getReservations(req.user.id);
+    const existingReservation = userReservations.find(
+      r => r.bookId === bookId && (r.status === 'pending' || r.status === 'ready')
+    );
+    
+    if (existingReservation) {
+      return res.status(400).json({
+        error: `You already have a ${existingReservation.status} reservation for this book`,
+        reservation: existingReservation
+      });
     }
     
     // Set expiry date to 3 days from notification
@@ -201,14 +261,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ error: validationResult.error.errors[0].message });
     }
     
-    const reservation = await storage.createBookReservation(validationResult.data);
-    res.status(201).json(reservation);
+    try {
+      const reservation = await storage.createBookReservation(validationResult.data);
+      
+      // Create a notification for the reservation
+      await storage.createNotification({
+        userId: req.user.id,
+        title: 'Book Reserved',
+        message: `You have been added to the reservation queue for "${book.title}". You'll be notified when the book becomes available.`,
+        type: 'reservation',
+        relatedData: { reservationId: reservation.id, bookId }
+      });
+      
+      res.status(201).json(reservation);
+    } catch (error) {
+      console.error('Error reserving book:', error);
+      res.status(500).json({ error: error.message || 'Failed to reserve book' });
+    }
   }));
   
   // GET /api/user/reservations - Get user's reservations
   app.get("/api/user/reservations", isAuthenticated, asyncHandler(async (req, res) => {
     const reservations = await storage.getReservationsWithDetails(req.user.id);
     res.json(reservations);
+  }));
+  
+  // POST /api/reservations/:id/borrow - Borrow a book from a ready reservation
+  app.post("/api/reservations/:id/borrow", isAuthenticated, asyncHandler(async (req, res) => {
+    const reservationId = parseInt(req.params.id);
+    const reservation = await storage.getBookReservation(reservationId);
+    
+    if (!reservation) {
+      return res.status(404).json({ error: "Reservation not found" });
+    }
+    
+    if (reservation.userId !== req.user.id) {
+      return res.status(403).json({ error: "You can only borrow books from your own reservations" });
+    }
+    
+    if (reservation.status !== 'ready') {
+      return res.status(400).json({ error: `This reservation is not ready for pickup (status: ${reservation.status})` });
+    }
+    
+    const book = await storage.getBookById(reservation.bookId);
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+    
+    // Verify book's availability - should have been kept reserved for this user
+    if (book.copiesAvailable < 1) {
+      return res.status(400).json({ error: "No copies available for borrowing" });
+    }
+    
+    // Calculate due date (14 days from now)
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    
+    try {
+      // Create the borrow transaction
+      const validationResult = insertBookTransactionSchema.safeParse({
+        bookId: reservation.bookId,
+        userId: req.user.id,
+        dueDate
+      });
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ error: validationResult.error.errors[0].message });
+      }
+      
+      const transaction = await storage.createBookTransaction(validationResult.data);
+      
+      // Update reservation status
+      await storage.updateBookReservation(reservationId, {
+        status: 'completed'
+      });
+      
+      // Create a notification
+      await storage.createNotification({
+        userId: req.user.id,
+        title: 'Reserved Book Borrowed',
+        message: `You have borrowed "${book.title}" from your reservation. Due date: ${dueDate.toLocaleDateString()}`,
+        type: 'due_date',
+        relatedData: { 
+          transactionId: transaction.id, 
+          bookId: book.id, 
+          reservationId, 
+          dueDate: dueDate.toISOString() 
+        }
+      });
+      
+      res.status(201).json({ 
+        transaction,
+        message: 'Successfully borrowed book from reservation'
+      });
+    } catch (error) {
+      console.error('Error borrowing book from reservation:', error);
+      res.status(500).json({ error: error.message || 'Failed to borrow book from reservation' });
+    }
   }));
   
   // GET /api/courses - Get all courses
