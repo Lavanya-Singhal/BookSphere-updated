@@ -9,24 +9,17 @@ export interface DashboardStats {
   overdueCount: number;
   totalBookCount: number;
   popularCategoryCount: number;
+  popularCategory?: string;
 }
 
 export function useDashboardStats() {
   const { user } = useAuth();
   
-  const { data, isLoading, error } = useQuery<DashboardStats>({
+  const { data, isLoading, error, refetch } = useQuery<DashboardStats>({
     queryKey: ["/api/user/dashboard/stats"],
     enabled: !!user,
-    // Default to mock stats while the API is being developed
-    placeholderData: {
-      borrowedCount: 2,
-      dueSoonCount: 1,
-      reservationCount: 1,
-      availableReservations: 0,
-      overdueCount: 0,
-      totalBookCount: 0,
-      popularCategoryCount: 0,
-    },
+    refetchInterval: 5000, // Refetch every 5 seconds to keep stats updated
+    staleTime: 1000, // Consider data stale after 1 second
   });
   
   return {
@@ -41,5 +34,6 @@ export function useDashboardStats() {
     },
     isLoading,
     error,
+    refetch,
   };
 }

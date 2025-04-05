@@ -39,19 +39,40 @@ export default function ResearchPaperList({
   });
   
   const handleDownload = (paper: ResearchPaper) => {
-    // In a real application, this would download the file
+    // Create a download link for the mock PDF
+    const link = document.createElement('a');
+    link.href = `/sample-paper.pdf`;
+    link.target = "_blank";
+    link.download = paper.title.replace(/\s+/g, '-').toLowerCase() + '.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
     toast({
       title: "Download Started",
       description: `Downloading ${paper.title}`,
     });
-    window.open(paper.filePath, "_blank");
   };
   
   const handleEmail = (paper: ResearchPaper) => {
-    // In a real application, this would open a modal to email the paper
+    // Create a mailto link with the paper details
+    const subject = encodeURIComponent(`Research Paper: ${paper.title}`);
+    const body = encodeURIComponent(
+      `Dear Colleague,\n\nI thought you might be interested in this research paper:\n\n` +
+      `Title: ${paper.title}\n` +
+      `Author: ${paper.author}\n` +
+      `Published: ${paper.publishDate}\n` +
+      `Journal: ${paper.journal || 'N/A'}\n\n` +
+      `Abstract: ${paper.abstract || 'N/A'}\n\n` +
+      `The paper can be accessed through our library system.\n\n` +
+      `Regards,\n${localStorage.getItem('userName') || 'A library user'}`
+    );
+    
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+    
     toast({
-      title: "Email Feature",
-      description: "Email functionality would be implemented here",
+      title: "Email Client Opened",
+      description: "Paper details have been added to a new email",
     });
   };
   

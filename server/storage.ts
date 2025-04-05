@@ -121,6 +121,9 @@ export class MemStorage implements IStorage {
     // Add sample books
     this.addSampleBooks();
     
+    // Add sample courses
+    this.addSampleCourses();
+    
     // Add sample research papers
     this.addSampleResearchPapers();
     
@@ -205,6 +208,122 @@ export class MemStorage implements IStorage {
         addedBy: null
       };
       this.booksMap.set(id, newBook);
+    });
+  }
+  
+  private addSampleCourses() {
+    const sampleCourses: InsertCourse[] = [
+      {
+        name: "Data Structures and Algorithms",
+        code: "CS-301",
+        description: "A comprehensive course covering fundamental data structures and algorithms used in computer science.",
+        department: "Computer Science"
+      },
+      {
+        name: "Object-Oriented Programming",
+        code: "CS-201",
+        description: "Introduction to object-oriented programming concepts and design patterns.",
+        department: "Computer Science"
+      },
+      {
+        name: "Database Management Systems",
+        code: "CS-405",
+        description: "Study of database design, implementation, and management techniques.",
+        department: "Computer Science"
+      },
+      {
+        name: "Computer Networks",
+        code: "CS-450",
+        description: "Principles of computer networks, protocols, and network security.",
+        department: "Computer Science"
+      },
+      {
+        name: "Software Engineering",
+        code: "SE-310",
+        description: "Methods and practices for developing large-scale software systems.",
+        department: "Software Engineering"
+      },
+      {
+        name: "Artificial Intelligence",
+        code: "CS-480",
+        description: "Introduction to AI concepts, algorithms, and applications.",
+        department: "Computer Science"
+      },
+      {
+        name: "Digital Electronics",
+        code: "EE-220",
+        description: "Fundamentals of digital circuit design and analysis.",
+        department: "Electrical Engineering"
+      },
+      {
+        name: "Machine Learning",
+        code: "CS-490",
+        description: "Techniques and algorithms for machine learning and data mining.",
+        department: "Computer Science"
+      },
+      {
+        name: "Operating Systems",
+        code: "CS-410",
+        description: "Design and implementation of modern operating systems.",
+        department: "Computer Science"
+      },
+      {
+        name: "Web Development",
+        code: "CS-370",
+        description: "Technologies and frameworks for building web applications.",
+        department: "Computer Science"
+      }
+    ];
+    
+    sampleCourses.forEach(course => {
+      const id = this.courseId++;
+      const newCourse: Course = { 
+        ...course, 
+        id
+      };
+      this.coursesMap.set(id, newCourse);
+      
+      // Associate some books with courses
+      if (course.code === "CS-301") { // Data Structures and Algorithms
+        this.createCourseBook({
+          courseId: id,
+          bookId: 1, // "Data Structures and Algorithms" book
+          addedBy: 2, // Faculty user
+          priority: 1,
+          isRequired: true
+        });
+      } else if (course.code === "CS-405") { // Database Management Systems
+        this.createCourseBook({
+          courseId: id,
+          bookId: 5, // "Database System Concepts" book
+          addedBy: 2, // Faculty user
+          priority: 1,
+          isRequired: true
+        });
+      } else if (course.code === "CS-490") { // Machine Learning
+        this.createCourseBook({
+          courseId: id,
+          bookId: 4, // "Introduction to Machine Learning with Python" book
+          addedBy: 2, // Faculty user
+          priority: 1,
+          isRequired: true
+        });
+      } else if (course.code === "SE-310") { // Software Engineering
+        this.createCourseBook({
+          courseId: id,
+          bookId: 2, // "Clean Code: A Handbook of Agile Software Craftsmanship" book
+          addedBy: 2, // Faculty user
+          priority: 1,
+          isRequired: true
+        });
+        this.createCourseBook({
+          courseId: id,
+          bookId: 3, // "The Pragmatic Programmer" book
+          addedBy: 2, // Faculty user
+          priority: 2,
+          isRequired: false
+        });
+      }
     });
   }
   

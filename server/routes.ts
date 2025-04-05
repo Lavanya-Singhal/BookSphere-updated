@@ -322,6 +322,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(notification);
   }));
   
+  // GET /api/user/dashboard/stats - Get dashboard statistics for the user
+  app.get("/api/user/dashboard/stats", isAuthenticated, asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+    
+    // Get borrowed books
+    const borrowedBooks = await storage.getBorrowedBooks(userId);
+    
+    // Get reservations
+    const reservations = await storage.getReservations(userId);
+    
+    // Calculate due soon (books due in the next 3 days)
+    const now = new Date();
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(now.getDate() + 3);
+    
+    const dueSoonBooks = borrowedBooks.filter(book => 
+      book.dueDate >= now && book.dueDate <= threeDaysFromNow
+    );
+    
+    // Calculate overdue books
+    const overdueBooks = borrowedBooks.filter(book => 
+      book.dueDate < now && book.status !== 'returned'
+    );
+    
+    // Get total books count
+    const books = await storage.getBooks(1000, 0);
+    
+    // Calculate popular category
+    const bookSubjects = books.flatMap(book => book.subjects || []);
+    const subjectCounts = bookSubjects.reduce((counts, subject) => {
+      if (!subject) return counts;
+      counts[subject] = (counts[subject] || 0) + 1;
+      return counts;
+    }, {} as Record<string, number>);
+    
+    let popularCategory = '';
+    let popularCategoryCount = 0;
+    
+    for (const [subject, count] of Object.entries(subjectCounts)) {
+      if (count > popularCategoryCount) {
+        popularCategory = subject;
+        popularCategoryCount = count;
+      }
+    }
+    
+    // Get available reservations
+    const availableReservations = reservations.filter(
+      reservation => reservation.status === 'ready'
+    ).length;
+    
+    const stats = {
+      borrowedCount: borrowedBooks.filter(book => book.status !== 'returned').length,
+      dueSoonCount: dueSoonBooks.length,
+      reservationCount: reservations.length,
+      availableReservations,
+      overdueCount: overdueBooks.length,
+      totalBookCount: books.length,
+      popularCategoryCount,
+      popularCategory
+    };
+    
+    res.json(stats);
+  }));
+  
   // Create HTTP server
   const httpServer = createServer(app);
   
