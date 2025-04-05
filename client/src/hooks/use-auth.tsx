@@ -64,6 +64,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Login successful",
         description: `Welcome back, ${user.name}!`,
       });
+      
+      // Redirect based on role
+      if (user.role === 'student') {
+        window.location.href = '/dashboard';
+      } else if (user.role === 'faculty') {
+        window.location.href = '/faculty-dashboard';
+      } else if (user.role === 'admin') {
+        window.location.href = '/admin-dashboard';
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -85,6 +94,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Registration successful",
         description: `Welcome, ${user.name}!`,
       });
+      
+      // Redirect based on role
+      if (user.role === 'student') {
+        window.location.href = '/dashboard';
+      } else if (user.role === 'faculty') {
+        window.location.href = '/faculty-dashboard';
+      } else if (user.role === 'admin') {
+        window.location.href = '/admin-dashboard';
+      }
     },
     onError: (error: Error) => {
       toast({

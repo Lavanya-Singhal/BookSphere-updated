@@ -117,6 +117,89 @@ export class MemStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
+    
+    // Add sample books
+    this.addSampleBooks();
+  }
+  
+  private addSampleBooks() {
+    const sampleBooks: InsertBook[] = [
+      {
+        title: "Data Structures and Algorithms",
+        author: "Thomas H. Cormen",
+        publisher: "MIT Press",
+        isbn: "978-0262033848",
+        year: 2009,
+        edition: "3rd Edition",
+        description: "The latest revised edition of the bestselling classic, providing a comprehensive introduction to data structures and algorithms.",
+        subjects: ["Computer Science", "Algorithms", "Programming"],
+        location: "CS-101",
+        copiesTotal: 10,
+        copiesAvailable: 8
+      },
+      {
+        title: "Clean Code: A Handbook of Agile Software Craftsmanship",
+        author: "Robert C. Martin",
+        publisher: "Prentice Hall",
+        isbn: "978-0132350884",
+        year: 2008,
+        description: "A must-read for any developer, software engineer, project manager, team lead, or systems analyst with an interest in producing better code.",
+        subjects: ["Software Engineering", "Programming", "Best Practices"],
+        location: "SE-203",
+        copiesTotal: 5,
+        copiesAvailable: 3
+      },
+      {
+        title: "The Pragmatic Programmer",
+        author: "Andrew Hunt, David Thomas",
+        publisher: "Addison-Wesley Professional",
+        isbn: "978-0201616224",
+        year: 1999,
+        edition: "1st Edition",
+        description: "Cuts through the increasing specialization and technicalities of modern software development to examine the core process.",
+        subjects: ["Software Engineering", "Programming", "Professional Development"],
+        location: "SE-205",
+        copiesTotal: 7,
+        copiesAvailable: 4
+      },
+      {
+        title: "Introduction to Machine Learning with Python",
+        author: "Andreas C. Müller, Sarah Guido",
+        publisher: "O'Reilly Media",
+        isbn: "978-1449369415",
+        year: 2016,
+        description: "A practical guide to machine learning with Python and scikit-learn, covering a wide range of algorithms for classification, regression, clustering, and dimensionality reduction.",
+        subjects: ["Machine Learning", "Python", "Data Science"],
+        location: "DS-301",
+        copiesTotal: 8,
+        copiesAvailable: 6
+      },
+      {
+        title: "Database System Concepts",
+        author: "Abraham Silberschatz, Henry F. Korth, S. Sudarshan",
+        publisher: "McGraw-Hill Education",
+        isbn: "978-0073523323",
+        year: 2010,
+        edition: "6th Edition",
+        description: "Database System Concepts provides a unified overview of database systems for undergraduates.",
+        subjects: ["Databases", "Computer Science", "Information Systems"],
+        location: "CS-202",
+        copiesTotal: 6,
+        copiesAvailable: 2
+      }
+    ];
+    
+    sampleBooks.forEach(book => {
+      const id = this.bookId++;
+      const newBook: Book = { 
+        ...book, 
+        id, 
+        addedAt: new Date(),
+        coverImage: undefined,
+        addedBy: undefined
+      };
+      this.booksMap.set(id, newBook);
+    });
   }
 
   // User operations
