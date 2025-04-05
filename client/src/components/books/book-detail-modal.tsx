@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, Star, StarHalf, BookOpen, MapPin, Barcode, Calendar } from "lucide-react";
@@ -21,6 +21,9 @@ export default function BookDetailModal({
   onBorrow
 }: BookDetailModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isBorrowing, setIsBorrowing] = useState(false);
+  const [isReserving, setIsReserving] = useState(false);
   
   // Fetch book details
   const { data: book, isLoading: isLoadingBook } = useQuery<Book>({
@@ -38,17 +41,80 @@ export default function BookDetailModal({
     ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length 
     : 0;
     
+  // Mutation for borrowing a book
+  const borrowMutation = useMutation({
+    mutationFn: async () => {
+      setIsBorrowing(true);
+      if (!bookId) throw new Error("Book ID is missing");
+      const res = await apiRequest("POST", `/api/books/${bookId}/borrow`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Book borrowed successfully",
+        description: `You have borrowed "${book?.title}". It's due back in 14 days.`,
+        variant: "default",
+      });
+      // Invalidate queries to update book count and user's borrowed books
+      queryClient.invalidateQueries({ queryKey: ["/api/user/books"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/dashboard/stats"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/books/${bookId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/books"] });
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to borrow book",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsBorrowing(false);
+    }
+  });
+  
+  // Mutation for reserving a book
+  const reserveMutation = useMutation({
+    mutationFn: async () => {
+      setIsReserving(true);
+      if (!bookId) throw new Error("Book ID is missing");
+      const res = await apiRequest("POST", `/api/books/${bookId}/reserve`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Book reserved successfully",
+        description: `You have reserved "${book?.title}". You'll receive an email notification when it becomes available.`,
+        variant: "default",
+      });
+      // Invalidate queries to update user's reservations
+      queryClient.invalidateQueries({ queryKey: ["/api/user/reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/dashboard/stats"] });
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to reserve book",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsReserving(false);
+    }
+  });
+  
   const handleBorrow = () => {
     if (onBorrow) {
       onBorrow();
     } else {
-      // Implement borrow functionality here if not provided via props
-      toast({
-        title: "Borrow Feature",
-        description: "This will be connected to the borrow API.",
-        variant: "default",
-      });
+      borrowMutation.mutate();
     }
+  };
+  
+  const handleReserve = () => {
+    reserveMutation.mutate();
   };
   
   // Render star rating
@@ -196,14 +262,32 @@ export default function BookDetailModal({
           </Button>
           
           {book && book.copiesAvailable > 0 && (
-            <Button variant="default" onClick={handleBorrow}>
-              Borrow
+            <Button 
+              variant="default" 
+              onClick={handleBorrow}
+              disabled={isBorrowing}
+            >
+              {isBorrowing ? (
+                <>
+                  <div className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-white"></div>
+                  Borrowing...
+                </>
+              ) : 'Borrow'}
             </Button>
           )}
           
           {book && book.copiesAvailable === 0 && (
-            <Button variant="secondary">
-              Reserve
+            <Button 
+              variant="secondary" 
+              onClick={handleReserve}
+              disabled={isReserving}
+            >
+              {isReserving ? (
+                <>
+                  <div className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-white"></div>
+                  Reserving...
+                </>
+              ) : 'Reserve'}
             </Button>
           )}
         </DialogFooter>

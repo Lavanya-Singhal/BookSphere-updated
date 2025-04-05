@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   Table, 
   TableBody, 
@@ -9,6 +9,13 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { 
   Pagination, 
   PaginationContent, 
@@ -17,9 +24,12 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-import { Loader2, Download, Mail, Info } from "lucide-react";
+import { Loader2, Download, Mail, Info, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { ResearchPaper } from "@/lib/types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface ResearchPaperListProps {
   limit?: number;
@@ -32,10 +42,42 @@ export default function ResearchPaperList({
 }: ResearchPaperListProps) {
   const { toast } = useToast();
   const [page, setPage] = useState(1);
+  const [emailTo, setEmailTo] = useState('');
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [selectedPaper, setSelectedPaper] = useState<ResearchPaper | null>(null);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const offset = (page - 1) * limit;
   
   const { data, isLoading, error } = useQuery<ResearchPaper[]>({
     queryKey: [`/api/research-papers?limit=${limit}&offset=${offset}`],
+  });
+  
+  const emailMutation = useMutation({
+    mutationFn: async (paperId: number) => {
+      setIsSendingEmail(true);
+      const res = await apiRequest("POST", `/api/research-papers/${paperId}/share`, { email: emailTo });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email Sent Successfully",
+        description: `The research paper has been sent to ${emailTo}`,
+        variant: "default",
+      });
+      setIsEmailDialogOpen(false);
+      setEmailTo('');
+      setSelectedPaper(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to send email",
+        description: error.message || "Please check the email address and try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsSendingEmail(false);
+    }
   });
   
   const handleDownload = (paper: ResearchPaper) => {
@@ -55,25 +97,24 @@ export default function ResearchPaperList({
   };
   
   const handleEmail = (paper: ResearchPaper) => {
-    // Create a mailto link with the paper details
-    const subject = encodeURIComponent(`Research Paper: ${paper.title}`);
-    const body = encodeURIComponent(
-      `Dear Colleague,\n\nI thought you might be interested in this research paper:\n\n` +
-      `Title: ${paper.title}\n` +
-      `Author: ${paper.author}\n` +
-      `Published: ${paper.publishDate}\n` +
-      `Journal: ${paper.journal || 'N/A'}\n\n` +
-      `Abstract: ${paper.abstract || 'N/A'}\n\n` +
-      `The paper can be accessed through our library system.\n\n` +
-      `Regards,\n${localStorage.getItem('userName') || 'A library user'}`
-    );
+    setSelectedPaper(paper);
+    setIsEmailDialogOpen(true);
+  };
+  
+  const handleSendEmail = () => {
+    if (!selectedPaper) return;
     
-    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailTo)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    toast({
-      title: "Email Client Opened",
-      description: "Paper details have been added to a new email",
-    });
+    emailMutation.mutate(selectedPaper.id);
   };
   
   const handleViewDetails = (paper: ResearchPaper) => {
@@ -226,6 +267,66 @@ export default function ResearchPaperList({
           </div>
         </div>
       )}
+      
+      {/* Email Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share Research Paper via Email</DialogTitle>
+          </DialogHeader>
+          
+          {selectedPaper && (
+            <div className="space-y-4 py-4">
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="font-medium text-gray-800">{selectedPaper.title}</p>
+                <p className="text-sm text-gray-600">by {selectedPaper.author}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Published: {new Date(selectedPaper.publishDate).toLocaleDateString()}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email-to">Email Address</Label>
+                <Input
+                  id="email-to"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={emailTo}
+                  onChange={(e) => setEmailTo(e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  The recipient will receive a link to download the research paper.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEmailDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !emailTo}
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

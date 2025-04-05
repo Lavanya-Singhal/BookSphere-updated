@@ -285,6 +285,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(paper);
   }));
   
+  // POST /api/research-papers/:id/share - Share research paper via email
+  app.post("/api/research-papers/:id/share", isAuthenticated, asyncHandler(async (req, res) => {
+    const id = parseInt(req.params.id);
+    const paper = await storage.getResearchPaperById(id);
+    
+    if (!paper) {
+      return res.status(404).json({ error: "Research paper not found" });
+    }
+    
+    // Validate request
+    const schema = z.object({
+      email: z.string().email("Invalid email address")
+    });
+    
+    const validationResult = schema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ error: validationResult.error.errors[0].message });
+    }
+    
+    const { email } = validationResult.data;
+    
+    // Generate a download link (in a real app, this would be a signed URL)
+    // Here we just use a placeholder URL
+    const downloadLink = `${req.protocol}://${req.get('host')}/api/research-papers/${id}/download`;
+    
+    try {
+      // Import and use email service
+      const { sendResearchPaperEmail } = await import('./services/email');
+      await sendResearchPaperEmail(
+        email, 
+        paper.title, 
+        paper.author, 
+        downloadLink
+      );
+      
+      res.json({ success: true, message: "Research paper shared successfully" });
+    } catch (error) {
+      console.error("Failed to send research paper email:", error);
+      res.status(500).json({ error: "Failed to send email" });
+    }
+  }));
+  
   // POST /api/research-papers - Add a new research paper (faculty/admin only)
   app.post("/api/research-papers", isFaculty, asyncHandler(async (req, res) => {
     const validationResult = insertResearchPaperSchema.safeParse({

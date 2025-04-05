@@ -619,7 +619,7 @@ export class MemStorage implements IStorage {
         notifiedAt: new Date()
       });
       
-      // Create notification for the user
+      // Create in-app notification for the user
       await this.createNotification({
         userId: nextReservation.userId,
         title: 'Book Available',
@@ -627,6 +627,19 @@ export class MemStorage implements IStorage {
         type: 'reservation',
         relatedData: { reservationId: nextReservation.id, bookId: book.id }
       });
+      
+      try {
+        // Send email notification
+        const reservationUser = await this.getUser(nextReservation.userId);
+        if (reservationUser) {
+          // Import and use email service dynamically to avoid circular dependencies
+          const { sendBookAvailableNotification } = await import('./services/email');
+          await sendBookAvailableNotification(reservationUser, book, nextReservation);
+        }
+      } catch (error) {
+        console.error('Failed to send email notification:', error);
+        // Continue even if email fails - user still has in-app notification
+      }
     }
     
     return updatedTransaction;
