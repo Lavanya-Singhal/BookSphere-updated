@@ -66,7 +66,7 @@ export default function StudentDashboard() {
           <StatCard
             title="Books Borrowed"
             value={stats.borrowedCount}
-            subtitle={`Out of ${user?.maxBooks || 0} allowed`}
+            subtitle={`Out of 4 allowed`}
             icon={<Book className="h-6 w-6 text-primary" />}
             borderColor="border-primary"
             iconBgColor="bg-blue-100"
