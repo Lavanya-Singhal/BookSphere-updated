@@ -99,84 +99,116 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         )}
         
-        <Link href="/" onClick={onClose}>
-          <a className={`block px-4 py-2 ${isActive('/') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-            <div className="flex items-center">
-              <Home className="mr-2 h-5 w-5" />
-              Home
-            </div>
-          </a>
-        </Link>
+        <div 
+          className={`block px-4 py-2 cursor-pointer ${isActive('/') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+          onClick={() => {
+            onClose();
+            window.location.href = '/';
+          }}
+        >
+          <div className="flex items-center">
+            <Home className="mr-2 h-5 w-5" />
+            Home
+          </div>
+        </div>
         
-        <Link href="/books" onClick={onClose}>
-          <a className={`block px-4 py-2 ${isActive('/books') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-            <div className="flex items-center">
-              <Book className="mr-2 h-5 w-5" />
-              Books
-            </div>
-          </a>
-        </Link>
+        <div 
+          className={`block px-4 py-2 cursor-pointer ${isActive('/books') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+          onClick={() => {
+            onClose();
+            window.location.href = '/books';
+          }}
+        >
+          <div className="flex items-center">
+            <Book className="mr-2 h-5 w-5" />
+            Books
+          </div>
+        </div>
         
-        <Link href="/research-papers" onClick={onClose}>
-          <a className={`block px-4 py-2 ${isActive('/research-papers') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-            <div className="flex items-center">
-              <FileText className="mr-2 h-5 w-5" />
-              Research Papers
-            </div>
-          </a>
-        </Link>
+        <div 
+          className={`block px-4 py-2 cursor-pointer ${isActive('/research-papers') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+          onClick={() => {
+            onClose();
+            window.location.href = '/research-papers';
+          }}
+        >
+          <div className="flex items-center">
+            <FileText className="mr-2 h-5 w-5" />
+            Research Papers
+          </div>
+        </div>
         
         {user && (
           <>
-            <Link href="/my-books" onClick={onClose}>
-              <a className={`block px-4 py-2 ${isActive('/my-books') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                <div className="flex items-center">
-                  <BookMarked className="mr-2 h-5 w-5" />
-                  My Borrowed Books
-                </div>
-              </a>
-            </Link>
+            <div 
+              className={`block px-4 py-2 cursor-pointer ${isActive('/my-books') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+              onClick={() => {
+                onClose();
+                window.location.href = '/my-books';
+              }}
+            >
+              <div className="flex items-center">
+                <BookMarked className="mr-2 h-5 w-5" />
+                My Borrowed Books
+              </div>
+            </div>
             
-            <Link href="/profile" onClick={onClose}>
-              <a className={`block px-4 py-2 ${isActive('/profile') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                <div className="flex items-center">
-                  <User className="mr-2 h-5 w-5" />
-                  Profile
-                </div>
-              </a>
-            </Link>
+            <div 
+              className={`block px-4 py-2 cursor-pointer ${isActive('/profile') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+              onClick={() => {
+                onClose();
+                window.location.href = '/profile';
+              }}
+            >
+              <div className="flex items-center">
+                <User className="mr-2 h-5 w-5" />
+                Profile
+              </div>
+            </div>
             
             {user.role === 'faculty' && (
               <>
                 <div className="border-t border-gray-200 my-2"></div>
                 <p className="px-4 py-1 text-xs uppercase text-gray-500 font-semibold">Faculty Actions</p>
                 
-                <Link href="/faculty-dashboard" onClick={onClose}>
-                  <a className={`block px-4 py-2 ${isActive('/faculty-dashboard') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                    <div className="flex items-center">
-                      <BarChart className="mr-2 h-5 w-5" />
-                      Faculty Dashboard
-                    </div>
-                  </a>
-                </Link>
+                <div 
+                  className={`block px-4 py-2 cursor-pointer ${isActive('/faculty-dashboard') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/faculty-dashboard';
+                  }}
+                >
+                  <div className="flex items-center">
+                    <BarChart className="mr-2 h-5 w-5" />
+                    Faculty Dashboard
+                  </div>
+                </div>
                 
-                <Link href="/add-book" onClick={onClose}>
-                  <a className={`block px-4 py-2 ${isActive('/add-book') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                    <div className="flex items-center">
-                      <BookPlus className="mr-2 h-5 w-5" />
-                      Add Book
-                    </div>
-                  </a>
-                </Link>
+                <div 
+                  className={`block px-4 py-2 cursor-pointer ${isActive('/add-book') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/add-book';
+                  }}
+                >
+                  <div className="flex items-center">
+                    <BookPlus className="mr-2 h-5 w-5" />
+                    Add Book
+                  </div>
+                </div>
                 
-                <Link href="/add-research-paper" onClick={onClose}>
-                  <a className={`block px-4 py-2 ${isActive('/add-research-paper') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                    <div className="flex items-center">
-                      <FilePlus className="mr-2 h-5 w-5" />
-                      Add Research Paper
-                    </div>
-                  </a>
-                </Link>
+                <div 
+                  className={`block px-4 py-2 cursor-pointer ${isActive('/add-research-paper') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/add-research-paper';
+                  }}
+                >
+                  <div className="flex items-center">
+                    <FilePlus className="mr-2 h-5 w-5" />
+                    Add Research Paper
+                  </div>
+                </div>
               </>
             )}
             
@@ -185,32 +217,44 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div className="border-t border-gray-200 my-2"></div>
                 <p className="px-4 py-1 text-xs uppercase text-gray-500 font-semibold">Admin Actions</p>
                 
-                <Link href="/admin-dashboard" onClick={onClose}>
-                  <a className={`block px-4 py-2 ${isActive('/admin-dashboard') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                    <div className="flex items-center">
-                      <BarChart className="mr-2 h-5 w-5" />
-                      Admin Dashboard
-                    </div>
-                  </a>
-                </Link>
+                <div 
+                  className={`block px-4 py-2 cursor-pointer ${isActive('/admin-dashboard') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/admin-dashboard';
+                  }}
+                >
+                  <div className="flex items-center">
+                    <BarChart className="mr-2 h-5 w-5" />
+                    Admin Dashboard
+                  </div>
+                </div>
                 
-                <Link href="/manage-users" onClick={onClose}>
-                  <a className={`block px-4 py-2 ${isActive('/manage-users') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                    <div className="flex items-center">
-                      <Users className="mr-2 h-5 w-5" />
-                      Manage Users
-                    </div>
-                  </a>
-                </Link>
+                <div 
+                  className={`block px-4 py-2 cursor-pointer ${isActive('/manage-users') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/manage-users';
+                  }}
+                >
+                  <div className="flex items-center">
+                    <Users className="mr-2 h-5 w-5" />
+                    Manage Users
+                  </div>
+                </div>
                 
-                <Link href="/system-settings" onClick={onClose}>
-                  <a className={`block px-4 py-2 ${isActive('/system-settings') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-                    <div className="flex items-center">
-                      <Settings className="mr-2 h-5 w-5" />
-                      System Settings
-                    </div>
-                  </a>
-                </Link>
+                <div 
+                  className={`block px-4 py-2 cursor-pointer ${isActive('/system-settings') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/system-settings';
+                  }}
+                >
+                  <div className="flex items-center">
+                    <Settings className="mr-2 h-5 w-5" />
+                    System Settings
+                  </div>
+                </div>
               </>
             )}
             
@@ -239,14 +283,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
         
         {!user && (
-          <Link href="/auth" onClick={onClose}>
-            <a className={`block px-4 py-2 ${isActive('/auth') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
-              <div className="flex items-center">
-                <LogOut className="mr-2 h-5 w-5" />
-                Login / Register
-              </div>
-            </a>
-          </Link>
+          <div 
+            className={`block px-4 py-2 cursor-pointer ${isActive('/auth') ? 'text-primary bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+            onClick={() => {
+              onClose();
+              window.location.href = '/auth';
+            }}
+          >
+            <div className="flex items-center">
+              <LogOut className="mr-2 h-5 w-5" />
+              Login / Register
+            </div>
+          </div>
         )}
       </div>
     </div>
