@@ -135,8 +135,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ error: "User not found" });
     }
     
-    if (user.borrowedCount >= user.maxBooks) {
-      return res.status(400).json({ error: `You've reached the maximum limit of ${user.maxBooks} books` });
+    // Hard limit of maximum 4 books for any user
+    const MAX_BOOKS_LIMIT = 4;
+    
+    if (user.borrowedCount >= MAX_BOOKS_LIMIT) {
+      return res.status(400).json({ error: `You've reached the maximum limit of ${MAX_BOOKS_LIMIT} books` });
     }
     
     // Calculate due date (14 days from now)
@@ -306,6 +309,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const book = await storage.getBookById(reservation.bookId);
     if (!book) {
       return res.status(404).json({ error: "Book not found" });
+    }
+    
+    // Check user's current borrowed count before allowing checkout
+    const user = await storage.getUser(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    // Hard limit of maximum 4 books for any user
+    const MAX_BOOKS_LIMIT = 4;
+    
+    if (user.borrowedCount >= MAX_BOOKS_LIMIT) {
+      return res.status(400).json({ error: `You've reached the maximum limit of ${MAX_BOOKS_LIMIT} books` });
     }
     
     // Verify book's availability - should have been kept reserved for this user
