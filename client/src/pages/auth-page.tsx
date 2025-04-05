@@ -102,7 +102,7 @@ export default function AuthPage() {
           <div className="flex justify-center mb-6">
             <div className="flex items-center">
               <BookOpen className="h-10 w-10 text-primary" />
-              <h1 className="ml-2 text-2xl font-serif font-bold text-gray-900">LibrarySystem</h1>
+              <h1 className="ml-2 text-2xl font-serif font-bold text-gray-900">BookSphere</h1>
             </div>
           </div>
 
@@ -117,7 +117,7 @@ export default function AuthPage() {
                 <CardHeader>
                   <CardTitle>Login to Your Account</CardTitle>
                   <CardDescription>
-                    Enter your credentials to access the library system.
+                    Enter your credentials to access BookSphere.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -185,7 +185,7 @@ export default function AuthPage() {
                 <CardHeader>
                   <CardTitle>Create an Account</CardTitle>
                   <CardDescription>
-                    Join our library system to access books and resources.
+                    Join BookSphere to access books and resources.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -313,7 +313,7 @@ export default function AuthPage() {
         <div className="flex flex-col justify-center h-full px-12 text-white">
           <div className="max-w-xl">
             <h2 className="text-4xl font-serif font-bold mb-6">
-              Welcome to the University Library System
+              Welcome to BookSphere
             </h2>
             <p className="text-xl mb-8">
               Access thousands of books, research papers, and academic resources all in one place.

@@ -76,7 +76,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 strokeLinejoin="round"
               />
             </svg>
-            <h2 className="text-xl font-serif font-bold text-primary">LibrarySystem</h2>
+            <h2 className="text-xl font-serif font-bold text-primary">BookSphere</h2>
           </div>
           <button onClick={onClose} className="text-gray-500">
             <X className="h-5 w-5" />

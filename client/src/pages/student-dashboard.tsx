@@ -53,7 +53,7 @@ export default function StudentDashboard() {
     <Layout>
       <PageHeader 
         title={`Student Dashboard`}
-        description={`Welcome back, ${user?.name}. Manage your books and explore the library resources.`}
+        description={`Welcome back, ${user?.name}. Manage your books and explore the BookSphere resources.`}
       />
       
       {/* Dashboard Stats */}

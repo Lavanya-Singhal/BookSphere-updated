@@ -73,7 +73,7 @@ export default function FacultyDashboard() {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-800">Add New Book</h3>
-                      <p className="text-sm text-gray-500">Recommend a book to the library</p>
+                      <p className="text-sm text-gray-500">Recommend a book to BookSphere</p>
                     </div>
                   </div>
                 </div>

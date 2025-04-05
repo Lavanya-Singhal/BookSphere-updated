@@ -68,7 +68,7 @@ export default function AdminDashboard() {
     <Layout>
       <PageHeader 
         title="Admin Dashboard"
-        description={`Welcome, ${user?.name}. Manage and monitor the library system.`}
+        description={`Welcome, ${user?.name}. Manage and monitor the BookSphere system.`}
       />
       
       {/* Quick Stats */}

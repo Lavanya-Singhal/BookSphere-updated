@@ -31,10 +31,10 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div>
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6">
-              University Library Management System
+              BookSphere
             </h1>
             <p className="text-lg text-gray-600 mb-8">
-              A modern approach to managing library resources, enhancing accessibility and efficiency for students and faculty.
+              A modern approach to managing academic resources, enhancing accessibility and efficiency for students and faculty.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               <Button size="lg" onClick={() => setLocation("/auth")}>
@@ -61,7 +61,7 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-serif font-bold text-gray-800 mb-4">Key Features</h2>
           <p className="text-gray-600 max-w-3xl mx-auto">
-            Our library management system offers a comprehensive set of features designed to enhance your academic experience.
+            BookSphere offers a comprehensive set of features designed to enhance your academic experience.
           </p>
         </div>
         
@@ -171,7 +171,7 @@ export default function HomePage() {
       <section className="py-12 bg-primary rounded-xl my-12 text-white text-center">
         <h2 className="text-3xl font-serif font-bold mb-6">Ready to Get Started?</h2>
         <p className="text-lg mb-8 max-w-2xl mx-auto">
-          Join our library management system today and explore a world of knowledge at your fingertips.
+          Join BookSphere today and explore a world of knowledge at your fingertips.
         </p>
         <Button 
           size="lg" 
