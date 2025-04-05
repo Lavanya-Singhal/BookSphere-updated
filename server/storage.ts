@@ -120,6 +120,12 @@ export class MemStorage implements IStorage {
     
     // Add sample books
     this.addSampleBooks();
+    
+    // Add sample research papers
+    this.addSampleResearchPapers();
+    
+    // Add sample AI recommendations
+    this.addSampleAIRecommendations();
   }
   
   private addSampleBooks() {
@@ -195,10 +201,111 @@ export class MemStorage implements IStorage {
         ...book, 
         id, 
         addedAt: new Date(),
-        coverImage: undefined,
-        addedBy: undefined
+        coverImage: null,
+        addedBy: null
       };
       this.booksMap.set(id, newBook);
+    });
+  }
+  
+  private addSampleResearchPapers() {
+    const samplePapers: InsertResearchPaper[] = [
+      {
+        title: "Advances in Natural Language Processing for Digital Libraries",
+        author: "Sarah Johnson, Michael Chen",
+        journal: "Journal of Digital Library Technologies",
+        publishDate: "2023-02-15",
+        subject: "Computer Science",
+        abstract: "This paper explores recent advancements in natural language processing and their applications in digital library systems for improved content discovery and metadata extraction.",
+        filePath: "/papers/advances-nlp-digital-libraries.pdf",
+        uploadedBy: 2 // Faculty user
+      },
+      {
+        title: "Machine Learning Approaches to Bibliographic Classification",
+        author: "David Rodriguez, Emily Patel",
+        journal: "International Journal of Library Science",
+        publishDate: "2022-11-30",
+        subject: "Machine Learning",
+        abstract: "A comparative study of various machine learning algorithms used for automated classification of bibliographic records in academic libraries.",
+        filePath: "/papers/ml-bibliographic-classification.pdf",
+        uploadedBy: 2 // Faculty user
+      },
+      {
+        title: "Blockchain Technology for Library Management Systems",
+        author: "Robert Wilson",
+        journal: "Emerging Technologies in Library Science",
+        publishDate: "2023-05-10",
+        subject: "Blockchain",
+        abstract: "This research examines how blockchain technology can be implemented in library management systems to enhance security, transparency, and efficiency in resource tracking.",
+        filePath: "/papers/blockchain-library-management.pdf",
+        uploadedBy: 2 // Faculty user
+      },
+      {
+        title: "Digital Preservation Strategies for Academic Libraries",
+        author: "Jennifer Martinez, Thomas Wright",
+        journal: "Journal of Library Administration",
+        publishDate: "2022-08-22",
+        subject: "Digital Preservation",
+        abstract: "An analysis of current digital preservation strategies and best practices for academic libraries facing challenges with long-term digital content management.",
+        filePath: "/papers/digital-preservation-academic-libraries.pdf",
+        uploadedBy: 2 // Faculty user
+      },
+      {
+        title: "User Experience Design in Library Catalog Systems",
+        author: "Laura Kim",
+        journal: "Human-Computer Interaction in Information Services",
+        publishDate: "2023-03-17",
+        subject: "User Experience",
+        abstract: "This paper presents findings from a study on user experience design principles applied to library catalog systems and their impact on information retrieval efficiency.",
+        filePath: "/papers/ux-design-library-catalogs.pdf",
+        uploadedBy: 2 // Faculty user
+      }
+    ];
+    
+    samplePapers.forEach(paper => {
+      const id = this.paperId++;
+      const newPaper: ResearchPaper = {
+        ...paper,
+        id,
+        uploadedAt: new Date()
+      };
+      this.researchPapersMap.set(id, newPaper);
+    });
+  }
+  
+  private addSampleAIRecommendations() {
+    // Get all books
+    const books = Array.from(this.booksMap.values());
+    if (books.length === 0) return;
+    
+    // Create recommendations for the student user (id: 1)
+    const studentId = 1;
+    const recommendations = [
+      {
+        bookId: 1,
+        reason: "Based on your interest in computer science courses"
+      },
+      {
+        bookId: 4,
+        reason: "This book on machine learning complements your current studies"
+      },
+      {
+        bookId: 2,
+        reason: "Popular among students with similar reading patterns"
+      }
+    ];
+    
+    recommendations.forEach(rec => {
+      const id = this.recommendationId++;
+      const newRecommendation: AIRecommendation = {
+        id,
+        userId: studentId,
+        bookId: rec.bookId,
+        reason: rec.reason,
+        createdAt: new Date(),
+        viewed: false
+      };
+      this.aiRecommendationsMap.set(id, newRecommendation);
     });
   }
 
